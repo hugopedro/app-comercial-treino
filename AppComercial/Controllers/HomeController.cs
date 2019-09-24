@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AppComercial.Models;
+using AppComercial.Models.ViewModels;
 
 namespace AppComercial.Controllers
 {
@@ -17,14 +18,16 @@ namespace AppComercial.Controllers
 
         public IActionResult About()
         {
-            ViewData["Message"] = "Your application description page.";
+            ViewData["Message"] = "App Comercial";
+            ViewData["Descricao"] = "Sales MVC App treinamento";
 
             return View();
         }
 
         public IActionResult Contact()
         {
-            ViewData["Message"] = "Your contact page.";
+            ViewData["Message"] = "Por Hugo Pedro.";
+            ViewData["Email"] = "hugopedro098@gmail.com";
 
             return View();
         }
