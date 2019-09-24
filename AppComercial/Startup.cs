@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using AppComercial.Models;
 
 namespace AppComercial
 {
@@ -33,6 +35,11 @@ namespace AppComercial
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddDbContext<AppComercialContext>(options => options.UseMySql(Configuration.GetConnectionString("AppComercialContext"), builder =>
+
+            builder.MigrationsAssembly("AppComercial")));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
