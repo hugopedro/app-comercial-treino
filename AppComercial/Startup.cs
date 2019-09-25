@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using AppComercial.Models;
 using AppComercial.Data;
+using AppComercial.Services;
 
 namespace AppComercial
 {
@@ -40,6 +41,7 @@ namespace AppComercial
             services.AddDbContext<AppComercialContext>(options => options.UseMySql(Configuration.GetConnectionString("AppComercialContext"), builder =>
             builder.MigrationsAssembly("AppComercial")));
             services.AddScoped<SeedingService>();
+            services.AddScoped<SellerService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
