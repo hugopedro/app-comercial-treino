@@ -15,7 +15,7 @@ namespace AppComercial.Models
         {
         }
 
-        public SalesRecord(int id, DateTime date, double amount, Seller seller, SaleStatus status)
+        public SalesRecord(int id, DateTime date, double amount, SaleStatus status, Seller seller)
         {
             Id = id;
             Date = date;
