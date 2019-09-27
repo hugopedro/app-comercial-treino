@@ -39,6 +39,12 @@ namespace AppComercial.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Seller seller) // só funfou pq criei no Seller.cs o DepartmentId!
         {
+            if (!ModelState.IsValid) // isso é pra previnir o usuario de enviar dados se o formulario está incorreto
+            { // exemplo, o usuario desabilitou o javascript e ai vai conseguir enviar sem restrições , isso barra essa brecha
+                var departments = _departmentService.FindAll();
+                var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
             _sellerService.Insert(seller);
             //redirecionar a requisição pra index(tela principal)
             return RedirectToAction(nameof(Index)); //nameof(Index) melhora a manutenção do sistema pq se algum dia mudar o nome do string da linha 21 nao vai ter que mudar nada!
@@ -104,6 +110,12 @@ namespace AppComercial.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Seller seller) // tambem recebe o objeto seller
         { // isso é pro botão de edição funfar
+            if (!ModelState.IsValid) // isso é pra previnir o usuario de enviar dados se o formulario está incorreto
+            { // exemplo, o usuario desabilitou o javascript e ai vai conseguir enviar sem restrições , isso barra essa brecha
+                var departments = _departmentService.FindAll();
+                var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
             if (id != seller.Id) // se o id for diferente do id do vendedor algo está errado
             {
                 return RedirectToAction(nameof(Error), new { message = "Id mismatch" });
