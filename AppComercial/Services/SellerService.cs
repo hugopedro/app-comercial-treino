@@ -1,4 +1,5 @@
 ﻿using AppComercial.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,9 @@ namespace AppComercial.Services
 
         public Seller FindById(int id) // encontrar o vendedor por id
         {
-            return _context.Seller.FirstOrDefault(obj => obj.Id == id);
+            // aqui é pra ele puxar o ID do vendedor tbm, entao aparece o nome do departamento referente nos detalhes!
+            // é assim que se fazer o "eager loading" que significa carregar objetos relacionados ao objeto principal!
+            return _context.Seller.Include(obj => obj.Department).FirstOrDefault(obj => obj.Id == id);
         }
 
         public void Remove(int id)
@@ -39,5 +42,7 @@ namespace AppComercial.Services
             _context.Seller.Remove(obj);
             _context.SaveChanges();
         }
+
+
     }
 }
