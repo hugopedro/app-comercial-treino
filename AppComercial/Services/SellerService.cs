@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AppComercial.Services.Exceptions;
 using System.Threading.Tasks;
 
 namespace AppComercial.Services
@@ -43,6 +44,24 @@ namespace AppComercial.Services
             _context.SaveChanges();
         }
 
+        public void Update(Seller obj)
+        {
+            if (!_context.Seller.Any( x=> x.Id == obj.Id))
+            {
+                //testando se o id já existe no banco, ja que tamos atualizando o id do objeto tem que existir
+                //se nao existir..
 
-    }
+                throw new NotFoundException("Id não encontrado");
+            }
+            try
+            {
+                _context.Update(obj); // atualizando o objeto utilizando entity framework
+                _context.SaveChanges();
+            } catch (DbConcurrencyException e) // Interceptando uma exceção do nivel de acesso a dados
+            {
+                throw new DbConcurrencyException(e.Message); // relançando a exceção só que a nivel de serviço, respeitando o padrão MVC
+            } // Ou seja, isso é muito importante pra dividir as camadas, onde a camada de serviços (NotFoundException) não vai propagar uma exceção do nível de acesso a dados(DbConcurrencyException)
+        } // portando se uma exceção de nivel de acesso a dados acontecer a minha camada de serviço vai lançar uma exceção da camada dela
+          // daí o controlador(SellerController) vai lhe dar com exceções só da camada de serviço
+    } 
 }

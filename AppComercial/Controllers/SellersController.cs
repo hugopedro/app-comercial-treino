@@ -6,6 +6,7 @@ using AppComercial.Models;
 using AppComercial.Models.ViewModels;
 using AppComercial.Services;
 using Microsoft.AspNetCore.Mvc;
+using AppComercial.Services.Exceptions;
 
 namespace AppComercial.Controllers
 {
@@ -78,6 +79,47 @@ namespace AppComercial.Controllers
                 return NotFound();
             }
             return View(obj);
+        }
+
+        public IActionResult Edit(int? id)
+        {
+            if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
+            {
+                return NotFound(); // deixar o notefound sem nada gera uma pagina de erro basica
+            }
+
+            var obj = _sellerService.FindById(id.Value);
+            if (obj == null)
+            {
+                return NotFound();
+            }
+
+            List<Department> departments = _departmentService.FindAll();
+            SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments }; // instanciação do viewmodel
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Seller seller) // tambem recebe o objeto seller
+        { // isso é pro botão de edição funfar
+            if (id != seller.Id) // se o id for diferente do id do vendedor algo está errado
+            {
+                return BadRequest();
+            }
+            try
+            {
+                _sellerService.Update(seller);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (NotFoundException)
+            {
+                return NotFound();
+            }
+            catch (DbConcurrencyException)
+            {
+                return BadRequest();
+            }
         }
     }
 }
