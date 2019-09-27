@@ -7,6 +7,7 @@ using AppComercial.Models.ViewModels;
 using AppComercial.Services;
 using Microsoft.AspNetCore.Mvc;
 using AppComercial.Services.Exceptions;
+using System.Diagnostics;
 
 namespace AppComercial.Controllers
 {
@@ -16,7 +17,7 @@ namespace AppComercial.Controllers
         private readonly DepartmentService _departmentService;
 
         public SellersController(SellerService sellerService, DepartmentService departmentService)
-        {
+        { // injeção de dependencia
             _sellerService = sellerService;
             _departmentService = departmentService;
         }
@@ -47,13 +48,13 @@ namespace AppComercial.Controllers
         {
             if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
             {
-                return NotFound(); // deixar o notefound sem nada gera uma pagina de erro basica
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
             var obj = _sellerService.FindById(id.Value); // tem q por .value pq ele é um nullable(objeto opcional) 
             if (obj == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
             }
             return View(obj);
         }
@@ -70,7 +71,7 @@ namespace AppComercial.Controllers
 
             if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
             {
-                return NotFound(); // deixar o notefound sem nada gera uma pagina de erro basica
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
             }
 
             var obj = _sellerService.FindById(id.Value); // tem q por .value pq ele é um nullable(objeto opcional) 
@@ -81,7 +82,7 @@ namespace AppComercial.Controllers
             return View(obj);
         }
 
-        public IActionResult Edit(int? id)
+        public IActionResult Edit(int? id) // acho q quando tem o ? eh a versao get do método
         {
             if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
             {
@@ -91,7 +92,7 @@ namespace AppComercial.Controllers
             var obj = _sellerService.FindById(id.Value);
             if (obj == null)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
             List<Department> departments = _departmentService.FindAll();
@@ -105,21 +106,32 @@ namespace AppComercial.Controllers
         { // isso é pro botão de edição funfar
             if (id != seller.Id) // se o id for diferente do id do vendedor algo está errado
             {
-                return BadRequest();
+                return RedirectToAction(nameof(Error), new { message = "Id mismatch" });
             }
             try
             {
                 _sellerService.Update(seller);
                 return RedirectToAction(nameof(Index));
             }
-            catch (NotFoundException)
+            catch (NotFoundException e)
+            // ja que as duas exceções são iguais pode-se colocar um ApplicationException, então as exceções vão casar atraves de um upcasting
             {
-                return NotFound();
+                return RedirectToAction(nameof(Error), new { message = e.Message });
             }
-            catch (DbConcurrencyException)
+            catch (DbConcurrencyException e)
             {
-                return BadRequest();
-            }
+                return RedirectToAction(nameof(Error), new { message = e.Message });
+            } // ou seja em ambos os casos vou redirecionar pra pagina de Error passando a mensagem da exceção
+        }
+        public IActionResult Error(string message)
+        {
+            var viewModel = new ErrorViewModel
+            {
+                Message = message,
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier 
+            };
+
+            return View(viewModel);
         }
     }
 }
