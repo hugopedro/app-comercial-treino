@@ -16,13 +16,14 @@ namespace AppComercial.Services
         }
 
         public List<Seller> FindAll()
-        {
-            return _context.Seller.ToList();
+        { // implementar uma operação no Entity Framework pra retornar no banco de dados todos os vendedores
+            return _context.Seller.ToList(); // Isso irá acessar a fonte de dados contido na tabela vendedores e converter isso para uma lista
         }
 
         public void Insert(Seller obj)
         { // método pra poder exibir um seller, é bem simples no entity framework
-            obj.Department = _context.Department.First(); // pra nao bugar o depId
+          //aqui o objeto seller está devidamento instanciado já com o departamento
+          //não vou mais precisar pq o objeto seller agora está devidamente instanciado com o departamento! obj.Department = _context.Department.First(); // pra nao bugar o depId
             _context.Add(obj);
             _context.SaveChanges();
         }
