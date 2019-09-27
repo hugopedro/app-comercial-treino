@@ -19,5 +19,12 @@ namespace AppComercial.Services
         {
             return _context.Seller.ToList();
         }
+
+        public void Insert(Seller obj)
+        { // método pra poder exibir um seller, é bem simples no entity framework
+            obj.Department = _context.Department.First(); // pra nao bugar o depId
+            _context.Add(obj);
+            _context.SaveChanges();
+        }
     }
 }

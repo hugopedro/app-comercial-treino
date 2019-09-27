@@ -13,7 +13,7 @@ namespace AppComercial.Models
         public DateTime BirthDate { get; set; }
         public double BaseSalary { get; set; }
         public Department Department { get; set; } //ISSO É MUITO IMPORTANTE, AQUI ELE TA LIGADO AS CLASSES DE ACORDO COM UML, MAS NAO USA COLLECTION PQ É "UM"
-        public int DepartmentId { get; set; } // <<< isso é necessario para avisar ao Entity Framework que o Id tem que existir, uma vez que o tipo int nao pode ser nulo(negocio do null no banco sql)
+        public int DepartmentId  { get; set; } // <<< isso é necessario para avisar ao Entity Framework que o Id tem que existir, uma vez que o tipo int nao pode ser nulo(negocio do null no banco sql)
         public ICollection<SalesRecord> Sales { get; set; } = new List<SalesRecord>();
 
         public Seller()
