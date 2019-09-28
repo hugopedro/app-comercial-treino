@@ -1,63 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using AppComercial.Models;
 using AppComercial.Models.ViewModels;
 using AppComercial.Services;
-using Microsoft.AspNetCore.Mvc;
 using AppComercial.Services.Exceptions;
-using System.Diagnostics;
 
-namespace AppComercial.Controllers
+namespace SalesWebMvc.Controllers
 {
     public class SellersController : Controller
     {
+
         private readonly SellerService _sellerService;
         private readonly DepartmentService _departmentService;
 
-        public SellersController(SellerService sellerService, DepartmentService departmentService)
+        public SellersController(SellerService sellerservice, DepartmentService departmentService)
         { // injeção de dependencia
-            _sellerService = sellerService;
+            _sellerService = sellerservice;
             _departmentService = departmentService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var list = _sellerService.FindAll();
-            return View(list);
+            //implementação da chamada server service .findall
+            var list = await _sellerService.FindAllAsync(); // isso irá retornar uma lista de seller
+            return View(list); // a lista será passada como argumento no método view pra ele gerar um IActionResult contendo a lista ali.
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var departments = _departmentService.FindAll(); // busca no banco todos os departamentos
+            var departments = await _departmentService.FindAllAsync(); // busca no banco todos os departamentos
             var viewModel = new SellerFormViewModel { Departments = departments };
             return View(viewModel); // quando a tela de cadastro for acionada ele ja vai receber os departamentos!
         }
 
         [HttpPost] // o método de inserir tem q ser post por isso isso ta aqui
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Seller seller) // só funfou pq criei no Seller.cs o DepartmentId!
+        [ValidateAntiForgeryToken] // é pra previnir ataques CSRF(Quando alguem aproveita a seção de autenticação e envia malware aproveitando a autenticação)
+        public async Task<IActionResult> Create(Seller seller) // só funfou pq criei no Seller.cs o DepartmentId!
         {
             if (!ModelState.IsValid) // isso é pra previnir o usuario de enviar dados se o formulario está incorreto
             { // exemplo, o usuario desabilitou o javascript e ai vai conseguir enviar sem restrições , isso barra essa brecha
-                var departments = _departmentService.FindAll();
+                var departments = await _departmentService.FindAllAsync();
                 var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
                 return View(viewModel);
             }
-            _sellerService.Insert(seller);
+            await _sellerService.InsertAsync(seller);
             //redirecionar a requisição pra index(tela principal)
             return RedirectToAction(nameof(Index)); //nameof(Index) melhora a manutenção do sistema pq se algum dia mudar o nome do string da linha 21 nao vai ter que mudar nada!
         }
 
-        public IActionResult Delete(int? id) //o ? significa que o int é opcional
+        public async Task<IActionResult> Delete(int? id) //o ? significa que o int é opcional
         {
             if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
             {
                 return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
-            var obj = _sellerService.FindById(id.Value); // tem q por .value pq ele é um nullable(objeto opcional) 
+            var obj = await _sellerService.FindByIdAsync(id.Value); // tem q por .value pq ele é um nullable(objeto opcional) 
             if (obj == null)
             {
                 return RedirectToAction(nameof(Error), new { message = "Id not found" });
@@ -66,53 +68,53 @@ namespace AppComercial.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id) // esse método é pro botao de delete funfar
+        public async Task<IActionResult> Delete(int id) // esse método é pro botao de delete funfar
         {
-            _sellerService.Remove(id);
+            await _sellerService.RemoveAsync(id);
             return RedirectToAction(nameof(Index));
         }
-
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
 
             if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
-            {
-                return RedirectToAction(nameof(Error), new { message = "Id not found" });
-            }
-
-            var obj = _sellerService.FindById(id.Value); // tem q por .value pq ele é um nullable(objeto opcional) 
-            if (obj == null)
-            {
-                return NotFound();
-            }
-            return View(obj);
-        }
-
-        public IActionResult Edit(int? id) // acho q quando tem o ? eh a versao get do método
-        {
-            if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
-            {
-                return NotFound(); // deixar o notefound sem nada gera uma pagina de erro basica
-            }
-
-            var obj = _sellerService.FindById(id.Value);
-            if (obj == null)
             {
                 return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
 
-            List<Department> departments = _departmentService.FindAll();
+            var obj = await _sellerService.FindByIdAsync(id.Value); // tem q por .value pq ele é um nullable(objeto opcional) 
+            if (obj == null)
+            {
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
+            }
+            return View(obj);
+        }
+
+        public async Task<IActionResult> Edit(int? id) // acho q quando tem o ? eh a versao get do método
+        {
+            if (id == null) // se o id for nulo quer dizer que a requisição foi feita de uma forma indevida
+            {
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
+            }
+
+            var obj = await _sellerService.FindByIdAsync(id.Value);
+            if (obj == null)
+            {
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
+            }
+
+            List<Department> departments = await _departmentService.FindAllAsync();
             SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments }; // instanciação do viewmodel
             return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Seller seller) // tambem recebe o objeto seller
+        public async Task<IActionResult> Edit(int id, Seller seller) // tambem recebe o objeto seller
         { // isso é pro botão de edição funfar
+
             if (!ModelState.IsValid) // isso é pra previnir o usuario de enviar dados se o formulario está incorreto
             { // exemplo, o usuario desabilitou o javascript e ai vai conseguir enviar sem restrições , isso barra essa brecha
-                var departments = _departmentService.FindAll();
+                var departments = await _departmentService.FindAllAsync();
                 var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
                 return View(viewModel);
             }
@@ -122,25 +124,29 @@ namespace AppComercial.Controllers
             }
             try
             {
-                _sellerService.Update(seller);
+                await _sellerService.UpdateAsync(seller);
                 return RedirectToAction(nameof(Index));
-            }
+            } /* ja que as duas exceções são iguais pode-se colocar um ApplicationException, então as exceções vão casar atraves de um upcasting
             catch (NotFoundException e)
-            // ja que as duas exceções são iguais pode-se colocar um ApplicationException, então as exceções vão casar atraves de um upcasting
             {
                 return RedirectToAction(nameof(Error), new { message = e.Message });
             }
             catch (DbConcurrencyException e)
             {
                 return RedirectToAction(nameof(Error), new { message = e.Message });
+            }*/
+            catch (ApplicationException e)
+            {
+                return RedirectToAction(nameof(Error), new { message = e.Message });
             } // ou seja em ambos os casos vou redirecionar pra pagina de Error passando a mensagem da exceção
         }
-        public IActionResult Error(string message)
+
+        public IActionResult Error(string message) // essa nao precisa ser assincrona pq ela nao tem nenhum acesso a dados, vai retornar direto na view
         {
             var viewModel = new ErrorViewModel
             {
                 Message = message,
-                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier 
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier // (wtf)
             };
 
             return View(viewModel);
